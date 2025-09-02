@@ -49,7 +49,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
         }
-        .frame(minWidth: 320, minHeight: 400, maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 320, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
         .background(Color.white)
     }
 }
