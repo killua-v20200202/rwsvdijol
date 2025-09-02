@@ -205,7 +205,9 @@ struct TimerView: View {
             blockerService.unblockAll()
         } else {
             timerManager.start()
-            blockerService.blockWebsites()
+            if blockerService.isEnabled {
+                blockerService.blockWebsites()
+            }
         }
     }
 }

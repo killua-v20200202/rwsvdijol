@@ -18,6 +18,7 @@ import SwiftUI
 struct SettingsMainView: View {
     @EnvironmentObject var blockerService: WebsiteBlockerService
     @State private var showingBlockList = false
+    @State private var showingWebsiteBlockerSettings = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -42,12 +43,12 @@ struct SettingsMainView: View {
                         VStack(spacing: 12) {
                             SettingsRow(
                                 title: "Manage Block List",
-                                subtitle: "\(blockerService.blockedWebsites.count) websites blocked",
+                                subtitle: blockerService.isEnabled ? "\(blockerService.blockedWebsites.count) websites blocked" : "Website blocker disabled",
                                 icon: "shield.slash.fill",
-                                color: .red,
+                                color: blockerService.isEnabled ? .red : .gray,
                                 isCompact: isCompact
                             ) {
-                                showingBlockList = true
+                                showingWebsiteBlockerSettings = true
                             }
                             
                             SettingsRow(
@@ -100,6 +101,9 @@ struct SettingsMainView: View {
         }
         .sheet(isPresented: $showingBlockList) {
             BlockListView()
+        }
+        .sheet(isPresented: $showingWebsiteBlockerSettings) {
+            WebsiteBlockerSettingsView()
         }
     }
 }

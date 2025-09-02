@@ -9,8 +9,9 @@ import SwiftUI
 import Network
 import Combine
 
-class WebsiteBlockerService: ObservableObject {
+class WebsiteBlockerService: ObservableObject, WebsiteBlockerServiceProtocol {
     @Published var isBlocking = false
+    @Published var isEnabled = true
     @Published var blockedWebsites: [String] = [
         "twitter.com",
         "facebook.com",
@@ -29,6 +30,8 @@ class WebsiteBlockerService: ObservableObject {
     }
     
     func blockWebsites() {
+        guard isEnabled else { return }
+        
         // In a real app, this would modify the hosts file or use a content filter
         // For demo purposes, we'll simulate blocking
         isBlocking = true
@@ -76,6 +79,32 @@ class WebsiteBlockerService: ObservableObject {
         saveBlockedWebsites()
     }
     
+    // MARK: - Protocol Implementation Note
+    // This method provides the interface for bulk website updates.
+    // When implementing with Network Extension framework, replace the
+    // simulateHostsModification calls with actual network filtering logic.
+    private func saveBlockedWebsites() {
+        UserDefaults.standard.set(isEnabled, forKey: "websiteBlockerEnabled")
+        
+        if let data = try? JSONEncoder().encode(blockedWebsites) {
+            UserDefaults.standard.set(data, forKey: "blockedWebsites")
+        }
+    }
+}
+    func updateBlockedWebsites(from text: String) {
+        let websites = text.components(separatedBy: .newlines)
+            .map { line in
+                line.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .replacingOccurrences(of: "https://", with: "")
+                    .replacingOccurrences(of: "http://", with: "")
+                    .replacingOccurrences(of: "www.", with: "")
+            }
+            .filter { !$0.isEmpty }
+        
+        blockedWebsites = websites
+        saveBlockedWebsites()
+    }
+    
     private func simulateHostsModification(blocking: Bool) {
         // In a real implementation, this would require admin privileges
         // and modify the actual hosts file with entries like:
@@ -90,6 +119,8 @@ class WebsiteBlockerService: ObservableObject {
     }
     
     private func loadBlockedWebsites() {
+        isEnabled = UserDefaults.standard.object(forKey: "websiteBlockerEnabled") as? Bool ?? true
+        
         if let data = UserDefaults.standard.data(forKey: "blockedWebsites"),
            let websites = try? JSONDecoder().decode([String].self, from: data) {
             blockedWebsites = websites
@@ -97,6 +128,8 @@ class WebsiteBlockerService: ObservableObject {
     }
     
     private func saveBlockedWebsites() {
+        UserDefaults.standard.set(isEnabled, forKey: "websiteBlockerEnabled")
+        
         if let data = try? JSONEncoder().encode(blockedWebsites) {
             UserDefaults.standard.set(data, forKey: "blockedWebsites")
         }
